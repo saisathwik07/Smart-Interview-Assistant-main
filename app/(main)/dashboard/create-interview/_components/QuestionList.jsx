@@ -97,25 +97,37 @@ function QuestionList({ formData, onCreateLink }) {
         expiry.setDate(expiry.getDate() + parseInt(formData.expiresIn));
         expiresAt = expiry.toISOString();
       }
-  
-      const { data, error } = await supabase
+
+      // Base interview data
+      const baseData = {
+        jobPosition: String(formData.jobPosition || ''),
+        jobDescription: String(formData.jobDescription || ''),
+        InterviewDuration: String(formData.interviewDuration || ''),
+        InterviewType: String(formData.interviewType || ''),
+        questionList: questionList,
+        interview_id: interview_id
+      };
+
+      // Try with new columns first
+      let result = await supabase
         .from('interviews')
-        .insert([
-          {
-            jobPosition: String(formData.jobPosition || ''),
-            jobDescription: String(formData.jobDescription || ''),
-            InterviewDuration: String(formData.interviewDuration || ''),
-            InterviewType: String(formData.interviewType || ''),
-            difficulty: String(formData.difficulty || 'Medium'),
-            expires_at: expiresAt,
-            questionList: questionList,
-            interview_id: interview_id
-          }
-        ])
+        .insert([{
+          ...baseData,
+          difficulty: String(formData.difficulty || 'Medium'),
+          expires_at: expiresAt,
+        }])
         .select();
+
+      // If schema error (columns don't exist yet), retry without them
+      if (result.error && result.error.message?.includes('schema')) {
+        result = await supabase
+          .from('interviews')
+          .insert([baseData])
+          .select();
+      }
   
-      if (error) {
-        toast.error("Failed to save interview: " + error.message);
+      if (result.error) {
+        toast.error("Failed to save interview: " + result.error.message);
       } else {
         onCreateLink(interview_id);
       }
