@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/select";
 import { InterviewType } from '@/services/Constants';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Briefcase, FileText, Clock, Tag } from 'lucide-react';
+import { ArrowRight, Briefcase, FileText, Clock, Tag, Hash, Gauge, CalendarClock } from 'lucide-react';
 
 function FormContainer({ onHandleInputChange, GoToNext }) {
   const [interviewType, setInterviewType] = useState([]);
@@ -53,29 +53,72 @@ function FormContainer({ onHandleInputChange, GoToNext }) {
         </label>
         <Textarea
           placeholder="Describe the role, responsibilities, and required skills..."
-          className="h-[180px] rounded-xl"
+          className="h-[150px] rounded-xl"
           onChange={(event) => onHandleInputChange('jobDescription', event.target.value)}
         />
       </div>
 
-      {/* Interview Duration */}
-      <div className="mt-5">
-        <label className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
-          <Clock className="w-4 h-4 text-primary" />
-          Interview Duration
-        </label>
-        <Select onValueChange={(value) => onHandleInputChange('interviewDuration', value)}>
-          <SelectTrigger className="w-full rounded-xl">
-            <SelectValue placeholder="Select Duration" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="5 Min">5 Min</SelectItem>
-            <SelectItem value="15 Min">15 Min</SelectItem>
-            <SelectItem value="30 Min">30 Min</SelectItem>
-            <SelectItem value="45 Min">45 Min</SelectItem>
-            <SelectItem value="60 Min">60 Min</SelectItem>
-          </SelectContent>
-        </Select>
+      {/* Row: Duration + Difficulty + Questions */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-5">
+        {/* Interview Duration */}
+        <div>
+          <label className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
+            <Clock className="w-4 h-4 text-primary" />
+            Duration
+          </label>
+          <Select onValueChange={(value) => onHandleInputChange('interviewDuration', value)}>
+            <SelectTrigger className="w-full rounded-xl">
+              <SelectValue placeholder="Select" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="5 Min">5 Min</SelectItem>
+              <SelectItem value="15 Min">15 Min</SelectItem>
+              <SelectItem value="30 Min">30 Min</SelectItem>
+              <SelectItem value="45 Min">45 Min</SelectItem>
+              <SelectItem value="60 Min">60 Min</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Difficulty Level */}
+        <div>
+          <label className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
+            <Gauge className="w-4 h-4 text-primary" />
+            Difficulty
+          </label>
+          <Select onValueChange={(value) => onHandleInputChange('difficulty', value)}>
+            <SelectTrigger className="w-full rounded-xl">
+              <SelectValue placeholder="Select" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Easy">Easy</SelectItem>
+              <SelectItem value="Medium">Medium</SelectItem>
+              <SelectItem value="Hard">Hard</SelectItem>
+              <SelectItem value="Expert">Expert</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        {/* Link Expiry */}
+        <div>
+          <label className="flex items-center gap-2 text-sm font-semibold text-foreground mb-2">
+            <CalendarClock className="w-4 h-4 text-primary" />
+            Link Expires
+          </label>
+          <Select onValueChange={(value) => onHandleInputChange('expiresIn', value)} defaultValue="7">
+            <SelectTrigger className="w-full rounded-xl">
+              <SelectValue placeholder="Select" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="1">1 Day</SelectItem>
+              <SelectItem value="3">3 Days</SelectItem>
+              <SelectItem value="7">7 Days</SelectItem>
+              <SelectItem value="14">14 Days</SelectItem>
+              <SelectItem value="30">30 Days</SelectItem>
+              <SelectItem value="never">Never</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {/* Interview Type */}

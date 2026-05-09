@@ -89,6 +89,14 @@ function QuestionList({ formData, onCreateLink }) {
       }
 
       const interview_id = uuidv4();
+
+      // Calculate expiry date
+      let expiresAt = null;
+      if (formData.expiresIn && formData.expiresIn !== 'never') {
+        const expiry = new Date();
+        expiry.setDate(expiry.getDate() + parseInt(formData.expiresIn));
+        expiresAt = expiry.toISOString();
+      }
   
       const { data, error } = await supabase
         .from('interviews')
@@ -98,6 +106,8 @@ function QuestionList({ formData, onCreateLink }) {
             jobDescription: String(formData.jobDescription || ''),
             InterviewDuration: String(formData.interviewDuration || ''),
             InterviewType: String(formData.interviewType || ''),
+            difficulty: String(formData.difficulty || 'Medium'),
+            expires_at: expiresAt,
             questionList: questionList,
             interview_id: interview_id
           }

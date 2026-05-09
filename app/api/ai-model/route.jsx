@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import OpenAI from "openai";
 
 export async function POST(req) {
-  const { jobPosition, jobDescription, interviewDuration, interviewType } = await req.json();
+  const { jobPosition, jobDescription, interviewDuration, interviewType, difficulty } = await req.json();
 
   if (!jobPosition || !jobDescription) {
     return NextResponse.json({ error: "Job position and description are required" }, { status: 400 });
@@ -13,7 +13,8 @@ export async function POST(req) {
     .replace("{{jobTitle}}", jobPosition)
     .replace("{{jobDescription}}", jobDescription)
     .replace("{{duration}}", interviewDuration)
-    .replace("{{type}}", interviewType);
+    .replace("{{type}}", interviewType)
+    .replace(/{{difficulty}}/g, difficulty || "Medium");
 
   try {
     const openai = new OpenAI({

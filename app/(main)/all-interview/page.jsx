@@ -151,7 +151,10 @@ function AllInterview() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.03 }}
             >
-              <InterviewCard interview={interview} />
+              <InterviewCard 
+                interview={interview} 
+                onDelete={(id) => setInterviewList(prev => prev.filter(i => i.interview_id !== id))}
+              />
             </motion.div>
           ))}
         </motion.div>

@@ -57,10 +57,12 @@ Job Title: {{jobTitle}}
 Job Description: {{jobDescription}}
 Interview Duration: {{duration}}
 Interview Type: {{type}}
+Difficulty Level: {{difficulty}}
 
 📝 Your task:
 Analyze the job description to identify key responsibilities, required skills, and expected experience.
-Generate a list of interview questions depends on interview duration
+Generate a list of interview questions depends on interview duration.
+Match the difficulty level - {{difficulty}} questions should be appropriately challenging.
 Adjust the number and depth of questions to match the interview duration.
 Ensure the questions match the tone and structure of a real-life {{type}} interview.
 🍀 Format your response in JSON format with array list of questions.

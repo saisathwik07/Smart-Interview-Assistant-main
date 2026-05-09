@@ -1,5 +1,5 @@
 -- ==========================================
--- AiCruiter Database Schema
+-- AiCruiter Database Schema - UPDATED
 -- Run this in Supabase SQL Editor
 -- ==========================================
 
@@ -20,6 +20,8 @@ CREATE TABLE IF NOT EXISTS interviews (
   "jobDescription" TEXT,
   "InterviewDuration" TEXT,
   "InterviewType" TEXT,
+  difficulty TEXT DEFAULT 'Medium',
+  expires_at TIMESTAMPTZ,
   "questionList" JSONB,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -41,6 +43,14 @@ ALTER TABLE interviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE "interview-feedback" ENABLE ROW LEVEL SECURITY;
 
 -- Allow all operations for now (adjust for production)
-CREATE POLICY "Allow all on Users" ON "Users" FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all on interviews" ON interviews FOR ALL USING (true) WITH CHECK (true);
-CREATE POLICY "Allow all on interview-feedback" ON "interview-feedback" FOR ALL USING (true) WITH CHECK (true);
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all on Users') THEN
+    CREATE POLICY "Allow all on Users" ON "Users" FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all on interviews') THEN
+    CREATE POLICY "Allow all on interviews" ON interviews FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname = 'Allow all on interview-feedback') THEN
+    CREATE POLICY "Allow all on interview-feedback" ON "interview-feedback" FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+END $$;

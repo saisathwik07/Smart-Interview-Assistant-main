@@ -31,7 +31,7 @@ function Interview() {
     try {
       const { data: interviews, error } = await supabase
         .from('interviews')
-        .select('jobPosition, jobDescription, InterviewDuration, InterviewType, questionList')
+        .select('jobPosition, jobDescription, InterviewDuration, InterviewType, questionList, difficulty, expires_at')
         .eq('interview_id', interview_id);
 
       if (error) throw error;
@@ -39,7 +39,15 @@ function Interview() {
         toast.error("Interview link expired or invalid");
         return;
       }
-      setInterviewData(interviews[0]);
+      
+      // Check expiry
+      const interview = interviews[0];
+      if (interview.expires_at && new Date(interview.expires_at) < new Date()) {
+        setInterviewData({ ...interview, expired: true });
+        return;
+      }
+      
+      setInterviewData(interview);
     } catch (e) {
       toast.error("Interview link expired or invalid");
     } finally {
@@ -83,6 +91,28 @@ function Interview() {
       toast.error("Something went wrong. Please try again.");
       setLoading(false);
     }
+  }
+
+  if (interviewData?.expired) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-screen px-6 py-10 relative overflow-hidden">
+        <div className="absolute inset-0 gradient-hero" />
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="relative z-10 flex flex-col items-center w-full max-w-md glass rounded-3xl p-10 shadow-2xl border border-white/10 text-center"
+          style={{ background: 'rgba(255,255,255,0.06)', backdropFilter: 'blur(24px)' }}
+        >
+          <div className="w-16 h-16 rounded-full bg-red-500/20 flex items-center justify-center mb-4">
+            <Clock className="w-8 h-8 text-red-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-white">Link Expired</h2>
+          <p className="text-gray-300 mt-2 text-sm">
+            The interview for <span className="font-semibold text-white">{interviewData.jobPosition}</span> has expired. Please contact the recruiter for a new link.
+          </p>
+        </motion.div>
+      </div>
+    );
   }
 
   return (
