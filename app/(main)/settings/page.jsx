@@ -12,6 +12,7 @@ function Settings() {
   const router = useRouter()
 
   const handleSignOut = async () => {
+    document.cookie = "guest_session=; path=/; max-age=0";
     await supabase.auth.signOut()
     router.push("/")
   }

@@ -30,6 +30,8 @@ function InterviewDetail() {
         interview_id,
         questionList,
         created_at,
+        difficulty,
+        expires_at,
         interview-feedback(
           userName,
           userEmail,

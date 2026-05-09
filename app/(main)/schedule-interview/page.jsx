@@ -30,6 +30,8 @@ function ScheduledInterview() {
         interview_id,
         questionList,
         created_at,
+        difficulty,
+        expires_at,
         interview-feedback(userEmail)
       `)
       .order('id', { ascending: false });
@@ -96,7 +98,11 @@ function ScheduledInterview() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
             >
-              <InterviewCard interview={interview} viewDetail={true} />
+              <InterviewCard 
+                interview={interview} 
+                viewDetail={true}
+                onDelete={(id) => setInterviewList(prev => prev.filter(i => i.interview_id !== id))}
+              />
             </motion.div>
           ))}
         </motion.div>

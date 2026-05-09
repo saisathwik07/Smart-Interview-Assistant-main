@@ -270,8 +270,8 @@ const Page = () => {
             <div>
               <h3 className="text-sm font-semibold uppercase tracking-wider text-gray-400 mb-4">Contact</h3>
               <ul className="space-y-3 text-sm text-gray-300">
-                <li>abhigolanakonda4546@gmail.com</li>
-                <li>+91 8712318704</li>
+                <li>support@aicruiter.app</li>
+                <li>Built by saisathwik07</li>
               </ul>
             </div>
           </div>

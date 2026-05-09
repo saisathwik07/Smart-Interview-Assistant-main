@@ -1,4 +1,4 @@
-import { Calendar, Clock, Tag, FileText } from "lucide-react";
+import { Calendar, Clock, Tag, FileText, Gauge } from "lucide-react";
 import moment from "moment";
 import React from "react";
 
@@ -36,6 +36,18 @@ function InterviewDetailContainer({ InterviewDetail }) {
             <div>
               <p className="text-xs text-muted-foreground">Type</p>
               <p className="text-sm font-semibold text-foreground">{InterviewDetail?.InterviewType}</p>
+            </div>
+          </div>
+        )}
+
+        {InterviewDetail?.difficulty && (
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <Gauge className="h-4 w-4 text-primary" />
+            </div>
+            <div>
+              <p className="text-xs text-muted-foreground">Difficulty</p>
+              <p className="text-sm font-semibold text-foreground">{InterviewDetail.difficulty}</p>
             </div>
           </div>
         )}

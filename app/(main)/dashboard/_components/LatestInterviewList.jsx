@@ -73,7 +73,7 @@ function LatestInterviewList() {
           animate={{ opacity: 1, y: 0 }}
           className="glass-card rounded-2xl p-10 flex flex-col items-center text-center"
         >
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-blue-500/10 to-purple-500/10 flex items-center justify-center mb-4">
+          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-500/10 to-indigo-500/10 flex items-center justify-center mb-4">
             <Inbox className="h-8 w-8 text-primary" />
           </div>
           <h3 className="font-bold text-foreground text-lg mb-1">No interviews yet</h3>
@@ -95,12 +95,15 @@ function LatestInterviewList() {
         >
           {interviewList.map((interview, index) => (
             <motion.div
-              key={index}
+              key={interview.interview_id || index}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.08 }}
             >
-              <InterviewCard interview={interview} />
+              <InterviewCard 
+                interview={interview}
+                onDelete={(id) => setInterviewList(prev => prev.filter(i => i.interview_id !== id))}
+              />
             </motion.div>
           ))}
         </motion.div>
