@@ -15,6 +15,7 @@ import { motion } from "framer-motion";
 function StartInterview() {
   const { interviewInfo } = useContext(InterviewDataContext);
   const vapiRef = useRef(null);
+  const conversationRef = useRef([]);
   const [activeUser, setActiveUser] = useState(false);
   const [conversation, setConversation] = useState(null);
   const { interview_id } = useParams();
@@ -30,19 +31,36 @@ function StartInterview() {
     const vapi = vapiRef.current;
 
     const handleMessage = (message) => {
+      // Capture conversation from message events
+      if (message?.type === 'transcript' && message?.transcriptType === 'final') {
+        conversationRef.current = [
+          ...conversationRef.current,
+          { role: message.role, content: message.transcript }
+        ];
+        setConversation(JSON.stringify(conversationRef.current));
+      }
+      // Also capture from conversation-update events  
+      if (message?.type === 'conversation-update' && message?.conversation) {
+        setConversation(JSON.stringify(message.conversation));
+      }
+      // Fallback: capture any message with conversation data
       if (message?.conversation) {
-        const convoString = JSON.stringify(message.conversation);
-        setConversation(convoString);
+        setConversation(JSON.stringify(message.conversation));
       }
     };
 
     const handleCallStart = () => {
       toast.success("Call connected!");
+      conversationRef.current = [];
     };
     const handleSpeechStart = () => setActiveUser(false);
     const handleSpeechEnd = () => setActiveUser(true);
     const handleCallEnd = () => {
       toast("Interview Ended");
+      // Build conversation from ref if state wasn't updated
+      if (conversationRef.current.length > 0 && !conversation) {
+        setConversation(JSON.stringify(conversationRef.current));
+      }
     };
 
     vapi.on("message", handleMessage);
@@ -110,25 +128,37 @@ function StartInterview() {
     vapiRef.current.start(assistantOptions);
   };
 
-  const stopInterview = () => {
+  const stopInterview = async () => {
     setLoading(true);
     if (vapiRef.current) {
       vapiRef.current.stop();
     }
-    GenerateFeedback();
+    // Small delay to let final transcripts arrive
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    
+    // Use ref as fallback
+    const finalConversation = conversation || (
+      conversationRef.current.length > 0 ? JSON.stringify(conversationRef.current) : null
+    );
+    
+    if (finalConversation) {
+      setConversation(finalConversation);
+    }
+    GenerateFeedback(finalConversation);
   };
 
-  const GenerateFeedback = async () => {
+  const GenerateFeedback = async (conversationData) => {
     setLoading(true);
-    if (!conversation) {
-      toast.error("No conversation data captured.");
+    const convo = conversationData || conversation;
+    if (!convo) {
+      toast.error("No conversation data captured. Please have a longer interview.");
       setLoading(false);
       return;
     }
 
     try {
       const result = await axios.post("/api/ai-feedback", {
-        conversation: conversation,
+        conversation: convo,
       });
 
       const content = result.data.content;
