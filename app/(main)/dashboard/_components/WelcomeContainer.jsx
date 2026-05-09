@@ -17,7 +17,7 @@ function WelcomeContainer() {
   return (
     <div className="relative overflow-hidden glass-card rounded-2xl p-6">
       {/* Decorative gradient */}
-      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-blue-500/10 via-purple-500/5 to-transparent rounded-bl-full" />
+      <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-bl from-teal-500/10 via-indigo-500/5 to-transparent rounded-bl-full" />
       
       <div className="flex justify-between items-center relative z-10">
         <div>
@@ -39,7 +39,7 @@ function WelcomeContainer() {
             className="w-12 h-12 rounded-full object-cover ring-2 ring-primary/20 shadow-lg"
           />
         ) : (
-          <div className="w-12 h-12 flex items-center justify-center gradient-primary rounded-full text-white text-lg font-bold shadow-lg shadow-blue-500/20">
+          <div className="w-12 h-12 flex items-center justify-center gradient-primary rounded-full text-white text-lg font-bold shadow-lg shadow-teal-500/20">
             {user?.name?.[0] || "U"}
           </div>
         )}
