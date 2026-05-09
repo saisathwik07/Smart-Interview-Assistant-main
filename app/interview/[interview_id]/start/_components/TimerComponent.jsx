@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useContext, useEffect, useState } from "react";
-import { InterviewDataContext } from "@/context/InterviewDataContext";
+import React, { useEffect, useState } from "react";
 
 const formatTime = (seconds) => {
   const hrs = String(Math.floor(seconds / 3600)).padStart(2, '0');
@@ -11,9 +10,7 @@ const formatTime = (seconds) => {
 };
 
 const TimerComponent = ({ start }) => {
-  const { interviewInfo } = useContext(InterviewDataContext);
-  const savedTime = interviewInfo?.interviewData?.duration || 0; // in seconds
-  const [elapsedTime, setElapsedTime] = useState(savedTime);
+  const [elapsedTime, setElapsedTime] = useState(0);
 
   useEffect(() => {
     if (!start) return;
@@ -22,7 +19,7 @@ const TimerComponent = ({ start }) => {
       setElapsedTime((prev) => prev + 1);
     }, 1000);
 
-    return () => clearInterval(interval); // cleanup
+    return () => clearInterval(interval);
   }, [start]);
 
   return <span>{formatTime(elapsedTime)}</span>;

@@ -1,9 +1,8 @@
 "use client";
 
 import { InterviewDataContext } from "@/context/InterviewDataContext";
-import { Loader2Icon, Mic, MicOff, Phone, Timer } from "lucide-react";
+import { Loader2Icon, Mic, MicOff, Phone, Timer, Sparkles } from "lucide-react";
 import React, { useContext, useEffect, useRef, useState } from "react";
-import Image from "next/image";
 import Vapi from "@vapi-ai/web";
 import { toast } from "sonner";
 import TimerComponent from "./_components/TimerComponent";
@@ -22,6 +21,7 @@ function StartInterview() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [callActive, setCallActive] = useState(false);
 
   useEffect(() => {
     if (!vapiRef.current) {
@@ -31,7 +31,7 @@ function StartInterview() {
     const vapi = vapiRef.current;
 
     const handleMessage = (message) => {
-      // Capture conversation from message events
+      // Capture conversation from transcript events
       if (message?.type === 'transcript' && message?.transcriptType === 'final') {
         conversationRef.current = [
           ...conversationRef.current,
@@ -50,17 +50,24 @@ function StartInterview() {
     };
 
     const handleCallStart = () => {
-      toast.success("Call connected!");
+      toast.success("Call connected! You can start speaking.");
       conversationRef.current = [];
+      setCallActive(true);
     };
     const handleSpeechStart = () => setActiveUser(false);
     const handleSpeechEnd = () => setActiveUser(true);
     const handleCallEnd = () => {
       toast("Interview Ended");
+      setCallActive(false);
       // Build conversation from ref if state wasn't updated
       if (conversationRef.current.length > 0 && !conversation) {
         setConversation(JSON.stringify(conversationRef.current));
       }
+    };
+    const handleError = (error) => {
+      console.error("Vapi Error:", error);
+      toast.error("Voice connection error. Check your Vapi key and microphone permissions.");
+      setCallActive(false);
     };
 
     vapi.on("message", handleMessage);
@@ -68,6 +75,7 @@ function StartInterview() {
     vapi.on("speech-start", handleSpeechStart);
     vapi.on("speech-end", handleSpeechEnd);
     vapi.on("call-end", handleCallEnd);
+    vapi.on("error", handleError);
 
     return () => {
       vapi.off("message", handleMessage);
@@ -75,6 +83,7 @@ function StartInterview() {
       vapi.off("speech-start", handleSpeechStart);
       vapi.off("speech-end", handleSpeechEnd);
       vapi.off("call-end", handleCallEnd);
+      vapi.off("error", handleError);
     };
   }, []);
 
@@ -89,6 +98,11 @@ function StartInterview() {
       ?.map((item) => item?.question)
       .filter(Boolean)
       .join(", ");
+
+    if (!questionList) {
+      toast.error("No interview questions found.");
+      return;
+    }
 
     const assistantOptions = {
       name: "AI Recruiter",
@@ -126,6 +140,15 @@ function StartInterview() {
       },
     };
     vapiRef.current.start(assistantOptions);
+  };
+
+  const toggleMute = () => {
+    if (vapiRef.current && callActive) {
+      const newMuted = !isMuted;
+      vapiRef.current.setMuted(newMuted);
+      setIsMuted(newMuted);
+      toast(newMuted ? "Microphone muted" : "Microphone unmuted");
+    }
   };
 
   const stopInterview = async () => {
@@ -225,53 +248,65 @@ function StartInterview() {
       >
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h2 className="font-bold text-xl text-foreground">AI Interview Session</h2>
-            <p className="text-sm text-muted-foreground mt-1">
+            <h2 className="font-bold text-xl text-white">AI Interview Session</h2>
+            <p className="text-sm text-gray-400 mt-1">
               {interviewInfo?.interviewData?.jobPosition || "Interview"} — {interviewInfo?.userName || "Candidate"}
             </p>
           </div>
-          <div className="glass-card rounded-xl px-4 py-2 flex items-center gap-2">
-            <Timer className="h-4 w-4 text-primary" />
-            <span className="font-mono text-sm font-semibold"><TimerComponent start={true} /></span>
+          <div className="rounded-xl px-4 py-2 flex items-center gap-2 border border-white/10" style={{ background: 'rgba(255,255,255,0.06)' }}>
+            <Timer className="h-4 w-4 text-teal-400" />
+            <span className="font-mono text-sm font-semibold text-white"><TimerComponent start={callActive} /></span>
           </div>
         </div>
+
+        {/* Connection status */}
+        {!callActive && !loading && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="mb-6 text-center rounded-xl py-3 border border-amber-500/20"
+            style={{ background: 'rgba(245, 158, 11, 0.1)' }}
+          >
+            <p className="text-amber-400 text-sm font-medium">
+              ⏳ Connecting to AI interviewer... Please allow microphone access when prompted.
+            </p>
+          </motion.div>
+        )}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-7">
           {/* AI Panel */}
           <motion.div
-            animate={!activeUser ? { boxShadow: '0 0 30px rgba(59, 130, 246, 0.15)' } : { boxShadow: '0 0 0px transparent' }}
-            className="glass-card h-[400px] rounded-2xl flex flex-col items-center justify-center gap-4 relative overflow-hidden"
+            animate={!activeUser ? { boxShadow: '0 0 30px rgba(13, 148, 136, 0.2)' } : { boxShadow: '0 0 0px transparent' }}
+            className="h-[400px] rounded-2xl flex flex-col items-center justify-center gap-4 relative overflow-hidden border border-white/10"
+            style={{ background: 'rgba(255,255,255,0.04)', backdropFilter: 'blur(12px)' }}
           >
             {!activeUser && (
-              <div className="absolute inset-0 bg-gradient-to-b from-blue-500/5 to-transparent" />
+              <div className="absolute inset-0 bg-gradient-to-b from-teal-500/5 to-transparent" />
             )}
             <div className="relative">
-              {!activeUser && (
+              {!activeUser && callActive && (
                 <motion.span
                   animate={{ scale: [1, 1.4, 1], opacity: [0.5, 0, 0.5] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
-                  className="absolute inset-0 w-[80px] h-[80px] rounded-full bg-blue-500/30"
+                  className="absolute inset-0 w-[80px] h-[80px] rounded-full bg-teal-500/30"
                 />
               )}
-              <Image
-                src="/ai.jpg"
-                alt="AI"
-                width={120}
-                height={120}
-                className="w-[80px] h-[80px] rounded-full object-cover ring-4 ring-blue-500/20 relative z-10"
-              />
+              <div className="w-[80px] h-[80px] rounded-full gradient-primary flex items-center justify-center relative z-10 ring-4 ring-teal-500/20">
+                <Sparkles className="w-8 h-8 text-white" />
+              </div>
             </div>
-            <h2 className="text-lg font-semibold text-foreground">AI Recruiter</h2>
-            <VoiceWave active={!activeUser} />
-            {!activeUser && (
-              <span className="text-xs text-primary font-medium animate-pulse">Speaking...</span>
+            <h2 className="text-lg font-semibold text-white">AI Recruiter</h2>
+            <VoiceWave active={!activeUser && callActive} />
+            {!activeUser && callActive && (
+              <span className="text-xs text-teal-400 font-medium animate-pulse">Speaking...</span>
             )}
           </motion.div>
 
           {/* User Panel */}
           <motion.div
-            animate={activeUser ? { boxShadow: '0 0 30px rgba(59, 130, 246, 0.15)' } : { boxShadow: '0 0 0px transparent' }}
-            className="glass-card h-[400px] rounded-2xl flex flex-col items-center justify-center gap-4 relative overflow-hidden"
+            animate={activeUser ? { boxShadow: '0 0 30px rgba(16, 185, 129, 0.2)' } : { boxShadow: '0 0 0px transparent' }}
+            className="h-[400px] rounded-2xl flex flex-col items-center justify-center gap-4 relative overflow-hidden border border-white/10"
+            style={{ background: 'rgba(255,255,255,0.04)', backdropFilter: 'blur(12px)' }}
           >
             {activeUser && (
               <div className="absolute inset-0 bg-gradient-to-b from-emerald-500/5 to-transparent" />
@@ -284,14 +319,14 @@ function StartInterview() {
                   className="absolute inset-0 w-16 h-16 rounded-full bg-emerald-500/30"
                 />
               )}
-              <div className="gradient-primary text-white rounded-full w-16 h-16 flex items-center justify-center text-xl font-bold relative z-10 ring-4 ring-blue-500/20">
+              <div className="gradient-primary text-white rounded-full w-16 h-16 flex items-center justify-center text-xl font-bold relative z-10 ring-4 ring-emerald-500/20">
                 {interviewInfo?.userName?.[0] || "U"}
               </div>
             </div>
-            <h2 className="text-lg font-medium text-foreground">{interviewInfo?.userName || "Candidate"}</h2>
+            <h2 className="text-lg font-medium text-white">{interviewInfo?.userName || "Candidate"}</h2>
             <VoiceWave active={activeUser} />
             {activeUser && (
-              <span className="text-xs text-emerald-500 font-medium animate-pulse">Your turn...</span>
+              <span className="text-xs text-emerald-400 font-medium animate-pulse">Your turn...</span>
             )}
           </motion.div>
         </div>
@@ -301,10 +336,11 @@ function StartInterview() {
           <motion.button
             whileHover={{ scale: 1.1 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setIsMuted(!isMuted)}
-            className={`h-14 w-14 rounded-full flex items-center justify-center transition-colors shadow-lg ${
-              isMuted ? 'bg-red-100 text-red-500' : 'bg-accent text-foreground'
+            onClick={toggleMute}
+            className={`h-14 w-14 rounded-full flex items-center justify-center transition-colors shadow-lg border border-white/10 ${
+              isMuted ? 'bg-red-500/20 text-red-400' : 'text-white'
             }`}
+            style={{ background: isMuted ? undefined : 'rgba(255,255,255,0.08)' }}
           >
             {isMuted ? <MicOff className="h-5 w-5" /> : <Mic className="h-5 w-5" />}
           </motion.button>
@@ -319,14 +355,14 @@ function StartInterview() {
               <Phone className="h-6 w-6 rotate-[135deg]" />
             </motion.button>
           ) : (
-            <div className="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center">
-              <Loader2Icon className="h-7 w-7 text-red-500 animate-spin" />
+            <div className="h-16 w-16 rounded-full bg-red-500/20 flex items-center justify-center">
+              <Loader2Icon className="h-7 w-7 text-red-400 animate-spin" />
             </div>
           )}
         </div>
 
-        <p className="text-xs text-muted-foreground text-center mt-4">
-          {loading ? "Generating AI feedback..." : "Interview in progress — click the red button to end"}
+        <p className="text-xs text-gray-500 text-center mt-4">
+          {loading ? "Generating AI feedback..." : callActive ? "Interview in progress — click the red button to end" : "Waiting for connection..."}
         </p>
       </motion.div>
     </div>
